@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>NAV_</title>
+<style>
+:root{
+  --bg:#020402;--panel:#031003;--text:#33ff66;--muted:#1fa84a;--line:#115c2a;
+  --accent:#33ff66;--accent-text:#021002;--danger:#ff5f4a;--focus:#33ff6655;
+  --glow:0 0 6px #33ff6688,0 0 14px #33ff6633;
+}
+*{box-sizing:border-box}
+::selection{background:#33ff66;color:#000}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);text-shadow:var(--glow);
+  font:15px/1.5 "SF Mono",ui-monospace,Menlo,Monaco,Consolas,monospace;min-height:100vh}
+/* CRT scanlines + vignette */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0 1px,transparent 1px 3px),
+  radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%)}
+main{max-width:860px;margin:0 auto;padding:28px 16px 64px}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.brand{margin:0}
+.logo{margin:0;font:inherit;font-size:clamp(7px,2.1vw,14px);line-height:1.05;white-space:pre;
+  text-shadow:0 0 8px #33ff66,0 0 22px #33ff6688;animation:slowblink 4.5s ease-in-out infinite}
+@keyframes slowblink{0%,100%{opacity:1}50%{opacity:.25}}
+.brandrow{display:flex;align-items:center;gap:clamp(12px,3vw,26px)}
+.radar{width:clamp(64px,13vw,104px);height:auto;flex:none;filter:drop-shadow(0 0 6px #33ff6699);overflow:visible}
+.radar .ring{fill:none;stroke:#33ff66;stroke-opacity:.55;stroke-width:1}
+.radar .cross{stroke:#33ff66;stroke-opacity:.3;stroke-width:1}
+.radar .sweep{transform-origin:50px 50px;animation:spin 3.6s linear infinite}
+.radar .orbit{transform-origin:50px 50px;animation:spin 9s linear infinite reverse}
+.radar .blip{fill:#33ff66;opacity:0;animation:blip 3.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blip{0%{opacity:1}60%{opacity:0}100%{opacity:0}}
+.tag{margin:8px 0 0;color:var(--muted);font-size:13px;font-weight:400}
+.cur{display:inline-block;width:.6em;height:1.05em;background:var(--text);vertical-align:text-bottom;
+  box-shadow:var(--glow);animation:cur 1.06s steps(1) infinite}
+@keyframes cur{50%{opacity:0}}
+button,input{font:inherit;color:inherit;text-shadow:inherit}
+input{background:transparent;border:0;border-bottom:1px dashed var(--line);border-radius:0;padding:6px 4px;min-width:0;width:100%;
+  caret-color:var(--text);caret-shape:block}
+input::placeholder{color:#1fa84a99}
+input:focus,button:focus-visible,li:focus-visible{outline:none;border-color:var(--accent);background:#33ff6612}
+li:focus-visible{background:#33ff6618;box-shadow:inset 3px 0 0 var(--accent)}
+button{background:transparent;border:0;padding:4px 2px;cursor:pointer;color:var(--text)}
+button::before{content:"[ "}button::after{content:" ]"}
+button:hover,button:focus-visible{background:var(--text);color:var(--accent-text);text-shadow:none}
+button.primary{font-weight:700}
+button.danger{color:var(--danger)}
+button.danger:hover,button.danger.armed{background:var(--danger);color:#000;text-shadow:none}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.card{border:1px solid var(--line);padding:14px;margin-bottom:14px;position:relative;box-shadow:0 0 14px #33ff6614 inset}
+#add{display:grid;grid-template-columns:minmax(90px,1fr) 3fr auto;gap:8px;align-items:center}
+#add::before{content:"> new alias";position:absolute;top:-10px;left:10px;background:var(--bg);padding:0 6px;color:var(--muted);font-size:12px}
+#banner{display:none;margin:0 0 6px;font-weight:700}
+.prompt{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.prompt::before{content:"$ grep";color:var(--muted);white-space:nowrap}
+ul{list-style:none;margin:0;padding:0}
+li{display:grid;grid-template-columns:minmax(90px,1fr) 3fr auto;gap:10px;align-items:center;
+  padding:8px 14px;border-bottom:1px dashed var(--line)}
+li:last-child{border-bottom:0}
+.alias{font-weight:700;overflow-wrap:anywhere}
+.alias::before{content:"> ";color:var(--muted)}
+.url{color:var(--muted);overflow-wrap:anywhere}
+.url b{font-weight:400;font-size:12px;margin-left:8px;opacity:.8}
+.row-actions{display:flex;gap:6px}
+li.editing{background:#33ff6610;box-shadow:inset 3px 0 0 var(--accent)}
+li.editing input{border-bottom:1px solid var(--accent)}
+#empty{padding:22px;text-align:center;color:var(--muted)}
+#toast{position:fixed;left:16px;bottom:18px;background:#000;border:1px solid var(--accent);color:var(--text);
+  padding:6px 12px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:60}
+#toast::before{content:"> "}
+#toast.show{opacity:1}
+#toast.err{border-color:var(--danger);color:var(--danger)}
+dialog{background:var(--bg);color:var(--text);border:1px solid var(--accent);border-radius:0;max-width:420px;box-shadow:var(--glow)}
+dialog::backdrop{background:#000c}
+dialog p{margin-top:0}
+dialog .actions{justify-content:flex-end}
+.hint{color:var(--muted);font-size:13px;margin:0 0 14px}
+kbd{border:1px solid var(--line);padding:0 5px;font:inherit;font-size:12px}
+footer a{color:inherit}
+footer{margin-top:28px;text-align:center;color:var(--muted);font-size:13px}
+summary{cursor:pointer;font-weight:700}
+.kv{display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;margin:6px 0}
+.kv span{color:var(--muted)}
+code{font:inherit;overflow-wrap:anywhere}
+@media (max-width:640px){
+  #add,li,li.editing{grid-template-columns:1fr}
+  .row-actions{justify-content:flex-start}
+}
+@media (prefers-reduced-motion:reduce){.logo,.cur,.radar .sweep,.radar .orbit,.radar .blip{animation:none}.radar .blip{opacity:.8}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="brand">
+<div class="brandrow">
+      <pre class="logo" aria-label="NAV">███╗   ██╗ █████╗ ██╗   ██╗
+████╗  ██║██╔══██╗██║   ██║
+██╔██╗ ██║███████║██║   ██║
+██║╚██╗██║██╔══██║╚██╗ ██╔╝
+██║ ╚████║██║  ██║ ╚████╔╝
+╚═╝  ╚═══╝╚═╝  ╚═╝  ╚═══╝</pre>
+      <svg class="radar" viewBox="0 0 100 100" role="img" aria-label="Rotating radar">
+        <defs>
+          <linearGradient id="beam" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#33ff66" stop-opacity="0"/>
+            <stop offset="1" stop-color="#33ff66" stop-opacity=".75"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring" cx="50" cy="50" r="46"/>
+        <circle class="ring" cx="50" cy="50" r="31"/>
+        <circle class="ring" cx="50" cy="50" r="16"/>
+        <line class="cross" x1="4" y1="50" x2="96" y2="50"/>
+        <line class="cross" x1="50" y1="4" x2="50" y2="96"/>
+        <g class="sweep">
+          <path d="M50 50 L96 50 A46 46 0 0 0 83.5 18.3 Z" fill="url(#beam)" transform="rotate(-0 50 50)"/>
+          <line x1="50" y1="50" x2="96" y2="50" stroke="#33ff66" stroke-width="1.5"/>
+        </g>
+        <circle class="blip" cx="72" cy="34" r="2.2" style="animation-delay:-3.1s"/>
+        <circle class="blip" cx="34" cy="68" r="2.2" style="animation-delay:-1.4s"/>
+        <circle class="blip" cx="62" cy="76" r="1.8" style="animation-delay:-2.2s"/>
+        <g class="orbit"><rect x="46.5" y="1" width="7" height="4" fill="#33ff66"/><rect x="43" y="2" width="3" height="2" fill="#33ff66"/><rect x="54" y="2" width="3" height="2" fill="#33ff66"/></g>
+        <circle cx="50" cy="50" r="2" fill="#33ff66"/>
+      </svg>
+    </div>
+      <p class="tag" id="tag"></p>
+    </div>
+    <div class="actions">
+      <button id="export" type="button">Export backup</button>
+      <button id="import" type="button">Import backup</button>
+      <input id="file" type="file" accept=".naav" hidden>
+    </div>
+  </header>
+
+  <form id="add" class="card" autocomplete="off">
+    <p id="banner" style="grid-column:1/-1"></p>
+    <input id="new-alias" placeholder="alias_" aria-label="Alias" spellcheck="false" autocapitalize="off">
+    <input id="new-url" placeholder="https://destination.example" aria-label="Destination URL" spellcheck="false" autocapitalize="off">
+    <button class="primary" type="submit">Add</button>
+  </form>
+
+  <div class="prompt"><input id="search" type="search" placeholder="search aliases_" aria-label="Search" autofocus autocomplete="off" spellcheck="false"></div>
+  <p class="hint"><kbd>/</kbd> search · <kbd>↓</kbd><kbd>↑</kbd> move · <kbd>Enter</kbd> open · <kbd>E</kbd> edit · <kbd>⌫</kbd> delete</p>
+
+  <div class="card" style="padding:0">
+    <ul id="list"></ul>
+    <div id="empty" hidden></div>
+  </div>
+
+  <details class="card" id="setup">
+    <summary>Address-bar setup (Chrome / Brave)</summary>
+    <p class="hint" style="margin:10px 0">Settings → Search engine → Manage search engines and site search → Add</p>
+    <div class="kv"><span>Name</span><code>Naav</code><button type="button" data-copy="Naav">Copy</button></div>
+    <div class="kv"><span>Shortcut</span><code>nav</code><button type="button" data-copy="nav">Copy</button></div>
+    <div class="kv"><span>URL</span><code id="setup-url"></code><button type="button" id="copy-url">Copy</button></div>
+  </details>
+
+  <footer>Published by Sina Dibay, <a href="https://dbay.dev/" target="_blank" rel="noopener noreferrer">Dibaydev LLC</a></footer>
+</main>
+
+<dialog id="import-dlg">
+  <p><strong id="import-name"></strong><br>How should this backup be applied?</p>
+  <div class="actions">
+    <button id="imp-cancel" type="button">Cancel</button>
+    <button id="imp-replace" type="button" class="danger">Replace all</button>
+    <button id="imp-merge" type="button" class="primary">Merge</button>
+  </div>
+</dialog>
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const list = $("list"), search = $("search"), empty = $("empty");
+const newAlias = $("new-alias"), newUrl = $("new-url");
+const params = new URLSearchParams(location.search);
+const createParam = params.get("create");
+let items = [], editing = null, toastTimer;
+
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function typeText(node, text, speed, done) {
+  if (reduced) { node.textContent = text; if (done) done(); return; }
+  let i = 0; node.textContent = "";
+  const tick = () => { node.textContent = text.slice(0, ++i); if (i < text.length) setTimeout(tick, speed); else if (done) done(); };
+  tick();
+}
+
+function toast(msg, isErr) {
+  const t = $("toast");
+  typeText(t, msg, 18);
+  t.className = "show" + (isErr ? " err" : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.className = ""), isErr ? 4000 : 1800);
+}
+
+async function api(method, path, body, raw) {
+  const opts = { method, headers: { "X-Naav": "1" } };
+  if (raw) { opts.body = raw; opts.headers["Content-Type"] = "application/octet-stream"; }
+  else if (body) { opts.body = JSON.stringify(body); opts.headers["Content-Type"] = "application/json"; }
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    let msg = res.statusText;
+    try { msg = (await res.json()).error || msg; } catch (_) {}
+    throw new Error(msg);
+  }
+  return res;
+}
+
+async function load() {
+  items = await (await api("GET", "/api/aliases")).json();
+  render();
+}
+
+function el(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  Object.assign(e, props || {});
+  for (const k of kids) e.append(k);
+  return e;
+}
+
+function render() {
+  const q = search.value.trim().toLowerCase();
+  const shown = items.filter((r) => !q || r.alias.includes(q) || r.url.toLowerCase().includes(q));
+  list.replaceChildren(...shown.map(row));
+  empty.hidden = shown.length > 0;
+  empty.textContent = items.length ? "no matches." : "no aliases yet — add your first one above.";
+  if (editing) { const i = list.querySelector("li.editing input"); if (i && document.activeElement === document.body) i.focus(); }
+}
+
+function row(r) {
+  if (editing === r.alias) return editRow(r);
+  const li = el("li", { tabIndex: 0 });
+  li.dataset.alias = r.alias;
+  const hits = el("b", { textContent: r.hit_count ? r.hit_count + (r.hit_count === 1 ? " hit" : " hits") : "" });
+  const edit = el("button", { type: "button", textContent: "Edit" });
+  const del = el("button", { type: "button", className: "danger", textContent: "Delete" });
+  edit.onclick = () => startEdit(r.alias);
+  del.onclick = () => armDelete(del, r.alias);
+  li.append(
+    el("span", { className: "alias", textContent: r.alias }),
+    el("span", { className: "url" }, r.url, hits),
+    el("span", { className: "row-actions" }, edit, del)
+  );
+  li.addEventListener("keydown", (e) => rowKey(e, r.alias, del));
+  return li;
+}
+
+function editRow(r) {
+  const li = el("li", { className: "editing" });
+  const a = el("input", { value: r.alias, ariaLabel: "Alias", spellcheck: false });
+  const u = el("input", { value: r.url, ariaLabel: "Destination URL", spellcheck: false });
+  const save = el("button", { type: "button", className: "primary", textContent: "Save" });
+  const cancel = el("button", { type: "button", textContent: "Cancel" });
+  const doSave = async () => {
+    try {
+      await api("PUT", "/api/aliases/" + encodeURIComponent(r.alias), { alias: a.value, url: u.value });
+      editing = null; await load(); toast("Saved");
+    } catch (err) { toast(err.message, true); }
+  };
+  const stop = () => { editing = null; render(); };
+  li.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); doSave(); }
+    else if (e.key === "Escape") { e.preventDefault(); stop(); }
+  });
+  save.onclick = doSave; cancel.onclick = stop;
+  li.append(a, u, el("span", { className: "row-actions" }, save, cancel));
+  // Old-terminal feel: existing values are "typed" into the fields; any keypress finishes it instantly.
+  let typing = !reduced;
+  const finish = () => { typing = false; a.value = r.alias; u.value = r.url; };
+  if (typing) {
+    const fa = r.alias, fu = r.url; a.value = ""; u.value = "";
+    let i = 0, j = 0;
+    const step = () => {
+      if (!typing) return;
+      if (i < fa.length) a.value = fa.slice(0, ++i);
+      else if (j < fu.length) u.value = fu.slice(0, ++j);
+      else { typing = false; return; }
+      setTimeout(step, 22);
+    };
+    li.addEventListener("keydown", (e) => { if (typing && e.key !== "Escape") { e.preventDefault(); finish(); } }, true);
+    setTimeout(step, 60);
+  }
+  queueMicrotask(() => u.focus());
+  return li;
+}
+
+function startEdit(alias) { editing = alias; render(); }
+
+let armedTimer;
+function armDelete(btn, alias) {
+  if (btn.classList.contains("armed")) { doDelete(alias); return; }
+  document.querySelectorAll("button.armed").forEach((b) => { b.classList.remove("armed"); b.textContent = "Delete"; });
+  btn.classList.add("armed"); btn.textContent = "Confirm?";
+  clearTimeout(armedTimer);
+  armedTimer = setTimeout(() => { btn.classList.remove("armed"); btn.textContent = "Delete"; }, 3000);
+}
+
+async function doDelete(alias) {
+  try {
+    await api("DELETE", "/api/aliases/" + encodeURIComponent(alias));
+    await load(); toast("Deleted " + alias);
+    search.focus();
+  } catch (err) { toast(err.message, true); }
+}
+
+function rowKey(e, alias, delBtn) {
+  if (e.target.tagName === "BUTTON" && e.key === "Enter") return;
+  const li = e.currentTarget;
+  if (e.key === "ArrowDown") { e.preventDefault(); (li.nextElementSibling || li).focus(); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); (li.previousElementSibling || search).focus(); }
+  else if (e.key === "Enter") { location.href = "/" + encodeURIComponent(alias); }
+  else if (e.key === "e") { e.preventDefault(); startEdit(alias); }
+  else if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); armDelete(delBtn, alias); delBtn.focus(); }
+}
+
+search.addEventListener("input", render);
+search.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowDown") { const f = list.querySelector("li"); if (f) { e.preventDefault(); f.focus(); } }
+  else if (e.key === "Enter") { const f = list.querySelector("li"); if (f) location.href = "/" + encodeURIComponent(f.dataset.alias); }
+  else if (e.key === "Escape") { search.value = ""; render(); }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "/" && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); search.focus(); }
+});
+
+$("add").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const alias = newAlias.value;
+  try {
+    const rec = await (await api("POST", "/api/aliases", { alias, url: newUrl.value })).json();
+    if (createParam) { location.href = "/" + encodeURIComponent(rec.alias); return; }
+    newAlias.value = ""; newUrl.value = "";
+    await load(); toast("Added " + rec.alias); newAlias.focus();
+  } catch (err) { toast(err.message, true); }
+});
+
+$("export").onclick = async () => {
+  try {
+    const res = await api("GET", "/api/export");
+    const m = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") || "");
+    const a = el("a", { href: URL.createObjectURL(await res.blob()), download: m ? m[1] : "naav-backup.naav" });
+    document.body.append(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+  } catch (err) { toast(err.message, true); }
+};
+
+let pending = null;
+$("import").onclick = () => $("file").click();
+$("file").onchange = (e) => {
+  pending = e.target.files[0]; e.target.value = "";
+  if (!pending) return;
+  $("import-name").textContent = pending.name;
+  $("import-dlg").showModal();
+};
+async function doImport(mode) {
+  $("import-dlg").close();
+  if (!pending) return;
+  try {
+    const out = await (await api("POST", "/api/import?mode=" + mode, null, await pending.arrayBuffer())).json();
+    await load();
+    toast(`Imported: ${out.added} added, ${out.updated} updated`);
+  } catch (err) { toast(err.message, true); }
+  pending = null;
+}
+$("imp-merge").onclick = () => doImport("merge");
+$("imp-replace").onclick = () => doImport("replace");
+$("imp-cancel").onclick = () => { pending = null; $("import-dlg").close(); };
+
+const setupUrl = location.origin + "/%s";
+$("setup-url").textContent = setupUrl;
+$("copy-url").dataset.copy = setupUrl;
+document.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = async () => {
+  try { await navigator.clipboard.writeText(b.dataset.copy); toast("Copied"); }
+  catch (_) { toast("Copy failed — select the text manually", true); }
+}));
+
+const tag = $("tag");
+typeText(tag, "local alias router :: ready", 35, () => tag.append(el("span", { className: "cur" })));
+(async function init() {
+  try { await load(); } catch (err) { toast(err.message, true); }
+  // Show the setup instructions when asked for, or until any alias has ever been used.
+  if (params.get("setup") || (!createParam && items.length && items.every((r) => !r.hit_count))) {
+    $("setup").open = true;
+  }
+  if (createParam) {
+    newAlias.value = createParam;
+    const b = $("banner");
+    b.style.display = "block";
+    b.textContent = "“" + createParam + "” doesn't exist yet — paste a URL and press Enter.";
+    newUrl.focus();
+  } else {
+    search.focus();
+  }
+})();
+</script>
+</body>
+</html>
