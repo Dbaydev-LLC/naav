@@ -1,3 +1,3 @@
 module github.com/Dbaydev-LLC/naav
 
-go 1.22
+go 1.24
