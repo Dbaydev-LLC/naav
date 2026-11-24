@@ -11,12 +11,27 @@ Type `nav gh` in the address bar → land on GitHub. Manage everything in a buil
 
 ## Install
 
+### Homebrew (recommended)
+
+Naav is available on Homebrew through its own tap:
+
 ```sh
-brew tap Dbaydev-LLC/naav && brew install naav
-brew services start naav
+brew tap Dbaydev-LLC/naav
+brew trust Dbaydev-LLC/naav     # newer Homebrew asks you to approve third-party taps
+brew install naav
+brew services start naav        # runs at login, restarts if it stops
 ```
-or build it and install it as a login service (no Homebrew needed):
+
+Then open <http://naav.localhost:4747/>. Update later with `brew update && brew upgrade naav`.
+Uninstall with `brew services stop naav && brew uninstall naav` (your aliases in `~/.naav` are kept).
+
+> On an older Homebrew without `brew trust`, just skip that line.
+
+### From source (no Homebrew)
+
+Needs [Go](https://go.dev/dl/) 1.24+. Builds the binary and installs it as a login service:
 ```sh
+git clone https://github.com/Dbaydev-LLC/naav.git && cd naav
 make build && ./naavd install      # start at login, auto-restart; ./naavd uninstall removes it
 ```
 Run it in the foreground instead with `./naavd`.
