@@ -1,5 +1,7 @@
 # Naav (ناو)
 
+![NAV dashboard — green terminal look with a rotating radar](docs/screenshot.png)
+
 A tiny, local, personal URL alias router for macOS (Chrome & Brave).
 Type `nav gh` in the address bar → land on GitHub. Manage everything in a built-in UI — no config files.
 
