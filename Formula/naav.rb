@@ -8,11 +8,11 @@ class Naav < Formula
 
   on_arm do
     url "https://github.com/Dbaydev-LLC/naav/releases/download/v#{version}/naavd_v#{version}_darwin_arm64.tar.gz"
-    sha256 "REPLACE_ARM64_SHA256"
+    sha256 "656759dfbc5e1f223f8521463a5ea07373d8a76cae6a0eae351f0342b1e2599a"
   end
   on_intel do
     url "https://github.com/Dbaydev-LLC/naav/releases/download/v#{version}/naavd_v#{version}_darwin_amd64.tar.gz"
-    sha256 "REPLACE_AMD64_SHA256"
+    sha256 "1767495c0be2baa8dae7d20d12e979413b39fc45f489c469fe7c49a24764c499"
   end
 
   def install
